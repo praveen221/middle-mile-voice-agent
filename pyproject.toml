@@ -1,0 +1,55 @@
+[build-system]
+requires = ["setuptools>=68", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "middle-mile-voice-agent"
+version = "0.1.0"
+description = "Multi-party Hinglish voice agent for middle-mile logistics negotiations"
+readme = "README.md"
+license = { file = "LICENSE" }
+requires-python = ">=3.11"
+authors = [{ name = "Praveen" }]
+keywords = ["voice-agent", "pipecat", "exotel", "logistics", "hinglish"]
+dependencies = [
+    "httpx>=0.27",
+    "pydantic>=2.10",
+    "pydantic-settings>=2.6",
+    "python-dotenv>=1.0",
+]
+
+[project.optional-dependencies]
+voice = [
+    "pipecat-ai[google,sarvam,deepgram,azure,daily,webrtc,runner,silero]>=0.0.95",
+]
+dev = [
+    "pytest>=8.0",
+    "pytest-asyncio>=0.24",
+    "ruff>=0.8",
+]
+redis = [
+    "redis>=5.0",
+]
+all = [
+    "middle-mile-voice-agent[voice,dev,redis]",
+]
+
+[project.urls]
+Homepage = "https://github.com/praveen221/middle-mile-voice-agent"
+Repository = "https://github.com/praveen221/middle-mile-voice-agent"
+
+[tool.setuptools.packages.find]
+where = ["."]
+include = ["src*"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+pythonpath = ["."]
+asyncio_mode = "auto"
+
+[tool.ruff]
+line-length = 100
+target-version = "py311"
+
+[tool.ruff.lint]
+select = ["E", "F", "I", "UP"]
