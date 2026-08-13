@@ -7,6 +7,8 @@ def test_known_shipment():
     assert row["origin"] == "BLR"
     assert row["destination"] == "HYD"
     assert row["driver_phone"].startswith("+91")
+    assert row["driver_name"] == "Ramesh"
+    assert row["gate_out_latest"] == "12:00"
 
 
 def test_missing_shipment():

@@ -6,6 +6,8 @@ def test_open_slot():
     assert result["found"] is True
     assert result["available"] is True
     assert result["slots"] == 3
+    assert result["gate_out_latest"] == "12:00"
+    assert result["reserved_window"] == "10:30-11:30"
 
 
 def test_full_hub_points_to_next_date():

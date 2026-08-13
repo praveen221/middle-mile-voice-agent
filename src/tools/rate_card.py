@@ -39,6 +39,9 @@ ALIASES = {
     "vizag": "VIZ",
     "visakhapatnam": "VIZ",
     "viz": "VIZ",
+    "whitefield": "BLR",
+    "patancheru": "HYD",
+    "electroniccity": "BLR",
 }
 
 

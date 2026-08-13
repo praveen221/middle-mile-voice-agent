@@ -50,12 +50,14 @@ class Coordinator:
         vehicle_type: str | None = None,
         pickup_date: str | None = None,
         first_party: Party = Party.DRIVER,
+        scenario_id: str | None = None,
     ) -> NegotiationSession:
         existing = self.store.get(session_id)
         if existing:
             return existing
         session = NegotiationSession(
             session_id=session_id,
+            scenario_id=scenario_id,
             goal=goal or NegotiationSession.model_fields["goal"].default,
             shipment_id=shipment_id,
             origin=origin,

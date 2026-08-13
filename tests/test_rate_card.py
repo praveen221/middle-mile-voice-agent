@@ -18,4 +18,6 @@ def test_missing_lane():
 
 def test_normalizers():
     assert normalize_city("bengaluru") == "BLR"
+    assert normalize_city("whitefield") == "BLR"
+    assert normalize_city("patancheru") == "HYD"
     assert normalize_vehicle("Tata 407") == "407"

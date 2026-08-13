@@ -2,10 +2,22 @@
 
 from __future__ import annotations
 
+from src.agent.state import get_store
 from src.tools.capacity import check_capacity
 from src.tools.negotiation import end_party_call, update_negotiation_state
 from src.tools.rate_card import get_rate_card
 from src.tools.status import get_shipment_status
+
+
+def trace_tool(session_id: str, name: str) -> None:
+    store = get_store()
+    session = store.get(session_id)
+    if session is None:
+        return
+    calls = list(session.extra.get("tool_calls") or [])
+    calls.append(name)
+    session.extra["tool_calls"] = calls
+    store.put(session)
 
 
 def make_voice_tools(session_id: str):
@@ -25,6 +37,7 @@ def make_voice_tools(session_id: str):
             destination: Destination city or code.
             vehicle_type: Vehicle type such as 14ft or 19ft.
         """
+        trace_tool(session_id, "get_rate_card")
         await params.result_callback(get_rate_card(origin, destination, vehicle_type))
 
     async def check_capacity_tool(params: FunctionCallParams, location: str, date: str):
@@ -34,6 +47,7 @@ def make_voice_tools(session_id: str):
             location: Warehouse city or code.
             date: Date as YYYY-MM-DD, today, or tomorrow.
         """
+        trace_tool(session_id, "check_capacity")
         await params.result_callback(check_capacity(location, date))
 
     async def get_shipment_status_tool(params: FunctionCallParams, shipment_id: str):
@@ -42,6 +56,7 @@ def make_voice_tools(session_id: str):
         Args:
             shipment_id: Shipment id such as MM-1001.
         """
+        trace_tool(session_id, "get_shipment_status")
         await params.result_callback(get_shipment_status(shipment_id))
 
     async def update_negotiation_state_tool(
@@ -69,6 +84,7 @@ def make_voice_tools(session_id: str):
             blocker: Optional blocker text.
             escalate: True to request a human.
         """
+        trace_tool(session_id, "update_negotiation_state")
         await params.result_callback(
             update_negotiation_state(
                 session_id,
@@ -99,6 +115,7 @@ def make_voice_tools(session_id: str):
             rate: Rate discussed, if any.
             blocker: Why it failed, if it failed.
         """
+        trace_tool(session_id, "end_party_call")
         await params.result_callback(
             end_party_call(
                 session_id,

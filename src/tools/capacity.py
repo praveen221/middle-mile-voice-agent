@@ -9,7 +9,15 @@ from src.tools.rate_card import normalize_city
 
 # Remaining outbound slots by location + ISO date.
 CAPACITY: dict[tuple[str, str], dict[str, Any]] = {
-    ("BLR", "2026-08-14"): {"slots": 3, "next_available": "2026-08-14", "window": "10:00-16:00"},
+    ("BLR", "2026-08-14"): {
+        "slots": 3,
+        "next_available": "2026-08-14",
+        "window": "10:00-16:00",
+        "reserved_for": "MM-1001",
+        "reserved_window": "10:30-11:30",
+        "gate_out_latest": "12:00",
+        "note": "Dock 2 is held until 12:00. After that it is released. Next DC receiving for this customer is 2026-08-16.",
+    },
     ("BLR", "2026-08-15"): {"slots": 1, "next_available": "2026-08-15", "window": "08:00-12:00"},
     ("HYD", "2026-08-14"): {"slots": 0, "next_available": "2026-08-15", "window": None},
     ("HYD", "2026-08-15"): {"slots": 4, "next_available": "2026-08-15", "window": "09:00-18:00"},
@@ -54,7 +62,7 @@ def check_capacity(location: str, date_str: str) -> dict[str, Any]:
             "message": "No capacity record. Treat as unknown and confirm with warehouse staff.",
         }
     available = int(row["slots"]) > 0
-    return {
+    payload = {
         "found": True,
         "location": loc,
         "date": day,
@@ -63,3 +71,7 @@ def check_capacity(location: str, date_str: str) -> dict[str, Any]:
         "window": row["window"],
         "next_available": row["next_available"],
     }
+    for key in ("reserved_for", "reserved_window", "gate_out_latest", "note"):
+        if key in row:
+            payload[key] = row[key]
+    return payload

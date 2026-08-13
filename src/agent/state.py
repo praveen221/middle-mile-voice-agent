@@ -27,6 +27,7 @@ class PartyOutcome(StrEnum):
 
 class NegotiationSession(BaseModel):
     session_id: str
+    scenario_id: str | None = None
     goal: str = "Confirm vehicle, rate, warehouse slot, and customer delivery window."
     shipment_id: str | None = None
     origin: str | None = None

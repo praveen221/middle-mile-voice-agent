@@ -7,8 +7,11 @@ from typing import Any
 
 from src.agent.coordinator import Coordinator
 from src.agent.prompts import build_system_prompt, opening_line
-from src.agent.state import NegotiationSession
+from src.agent.state import NegotiationSession, Party, PartyOutcome, get_store
 from src.config import Settings, get_settings
+from src.eval.debrief import debrief, format_debrief
+from src.eval.session_file import save_session
+from src.scenarios import get_scenario
 from src.tools.bindings import make_voice_tools
 
 
@@ -156,6 +159,14 @@ async def run_bot(transport, runner_args, session: NegotiationSession) -> None:
     @transport.event_handler("on_client_disconnected")
     async def on_client_disconnected(transport, client):
         logger.info("Client disconnected")
+        try:
+            latest = get_store().get(session.session_id) or session
+            if latest.scenario_id:
+                report = debrief(latest, get_scenario(latest.scenario_id))
+                print(format_debrief(report), flush=True)
+            save_session(latest)
+        except Exception:
+            logger.exception("Failed to write debrief")
         await runner.cancel()
 
     await runner.run()
@@ -169,9 +180,18 @@ def bootstrap_session(
     destination: str | None = None,
     vehicle_type: str | None = None,
     pickup_date: str | None = None,
+    party: Party | str | None = None,
+    scenario_id: str | None = None,
 ) -> NegotiationSession:
     coordinator = Coordinator()
     sid = session_id or os.environ.get("SESSION_ID") or "local-dev"
+    scenario = get_scenario(scenario_id) if scenario_id else None
+    if scenario is not None:
+        shipment_id = shipment_id or scenario.shipment_id
+        origin = origin or scenario.origin
+        destination = destination or scenario.destination
+        vehicle_type = vehicle_type or scenario.vehicle_type
+        pickup_date = pickup_date or scenario.pickup_date
     if shipment_id:
         from src.tools.status import get_shipment_status
 
@@ -181,11 +201,20 @@ def bootstrap_session(
             destination = destination or info.get("destination")
             vehicle_type = vehicle_type or info.get("vehicle_type")
             pickup_date = pickup_date or info.get("pickup_date")
-    return coordinator.start(
+    first_party = Party(party) if party else Party.DRIVER
+    session = coordinator.start(
         sid,
         shipment_id=shipment_id,
         origin=origin,
         destination=destination,
         vehicle_type=vehicle_type,
         pickup_date=pickup_date,
+        first_party=first_party,
+        scenario_id=scenario.id if scenario else scenario_id,
+        goal=scenario.success_means if scenario else None,
     )
+    if party:
+        session.current_party = Party(party)
+        session.party_outcomes.setdefault(session.current_party.value, PartyOutcome.PENDING)
+        coordinator.store.put(session)
+    return session

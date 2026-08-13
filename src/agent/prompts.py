@@ -3,47 +3,44 @@
 from __future__ import annotations
 
 from src.agent.state import NegotiationSession, Party
+from src.scenarios import get_scenario
 
 VOICE_RULES = """
-You are on a live phone call. Speak in natural spoken Hinglish (Hindi + English mix).
-Keep turns short — 1 or 2 sentences unless they ask for detail.
-No markdown, no bullets, no emojis, no lists. Numbers as speech: "athaarah hazaar" or "eighteen thousand".
-If you do not know something, say you will check and use a tool.
-Never invent a rate, slot, or shipment status. Always call a tool first.
-"""
-
-COORDINATOR_ROLE = """
-You are the middle-mile logistics coordinator for a trucking desk in India.
-Your job is sequential multi-party negotiation:
-1. Talk to the driver about vehicle, pickup time, and rate.
-2. Then warehouse about dock capacity and loading slot.
-3. Then customer about delivery window and any rate change.
-If a party blocks you, go back to the previous party with the new constraint.
-If you are stuck after repeated handoffs, escalate to a human.
+You are on a live outbound phone call that you placed. The other person just picked up.
+Speak in natural spoken Hinglish. Short turns. One question at a time.
+No markdown, no bullets, no emojis, no lists.
+Say money as speech: "teyis hazaar" or "twenty three thousand", not "23k".
+If you do not know something, say you will check, then use a tool. Never invent a number.
 """
 
 PARTY_GOALS: dict[Party, str] = {
     Party.DRIVER: (
-        "You are speaking to the DRIVER. Confirm vehicle type, current location, "
-        "pickup readiness, and agree a rate within the rate card. "
-        "If they demand more than the max rate, note the blocker and close politely."
+        "You are speaking to the DRIVER. Confirm the 19ft, where they are, "
+        "when they can reach the origin hub, and lock a rate inside the card. "
+        "If they demand more than the max, do not agree. Capture the blocker and close."
     ),
     Party.WAREHOUSE: (
-        "You are speaking to the WAREHOUSE. Confirm dock capacity for the pickup date, "
-        "loading window, and any gate or document issues. "
-        "If no slot, capture the next available date."
+        "You are speaking to the WAREHOUSE dock. Confirm the reserved slot is still "
+        "held, give them a real truck ETA, and ask what documents they need at the gate. "
+        "If they will release the dock, capture the new cut-off."
     ),
     Party.CUSTOMER: (
-        "You are speaking to the CUSTOMER. Confirm delivery window and any rate change "
-        "that came from the driver. Get a clear yes or no."
+        "You are speaking to the CUSTOMER inbound desk. Confirm the tonight appointment "
+        "is still on the board. Only quote a rate change if one was actually accepted. "
+        "Get a yes or a no. Do not beg them to keep the gate open."
     ),
     Party.HUMAN: (
-        "You are briefing a HUMAN operator. Summarize the negotiation and the blocker."
+        "You are briefing a HUMAN operator. Two sentences: what is true, what is blocked."
     ),
 }
 
 
 def opening_line(party: Party, session: NegotiationSession) -> str:
+    if session.scenario_id:
+        scenario = get_scenario(session.scenario_id)
+        scripted = scenario.openings.get(party)
+        if scripted:
+            return scripted
     shipment = session.shipment_id or "the load"
     lane = f"{session.origin or 'origin'} se {session.destination or 'destination'}"
     if party == Party.DRIVER:
@@ -69,13 +66,27 @@ def opening_line(party: Party, session: NegotiationSession) -> str:
 
 def build_system_prompt(session: NegotiationSession) -> str:
     party = session.current_party
-    return "\n".join(
+    parts = [VOICE_RULES.strip(), PARTY_GOALS[party]]
+    if session.scenario_id:
+        scenario = get_scenario(session.scenario_id)
+        parts.extend(
+            [
+                f"Case: {scenario.title}. {scenario.clock}",
+                scenario.story,
+                scenario.agent_constraints,
+                f"Success: {scenario.success_means}",
+            ]
+        )
+    else:
+        parts.append(
+            "You are a middle-mile logistics coordinator running sequential "
+            "negotiations: driver, then warehouse, then customer."
+        )
+    parts.extend(
         [
-            VOICE_RULES.strip(),
-            COORDINATOR_ROLE.strip(),
-            PARTY_GOALS[party],
             f"Shared negotiation state: {session.snapshot()}",
             "When this party is done, call end_party_call with outcome and a one-line summary.",
             "Use get_rate_card, check_capacity, get_shipment_status, and update_negotiation_state as needed.",
         ]
     )
+    return "\n\n".join(parts)

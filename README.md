@@ -2,15 +2,71 @@
 
 Open-source **multi-party voice agent** for middle-mile logistics negotiations.
 
-It can:
-
-1. Make outbound calls via **Exotel** (Vapi as a same-day PSTN fallback)
-2. Speak and understand **Hinglish + Hindi**
-3. Run **sequential** negotiations: driver → warehouse/customer → decide
-4. Use tools (rate card, capacity, shipment status, shared state)
-5. Iterate locally with real keys
-
 Licensed under [MIT](LICENSE).
+
+## What “run it locally” actually does
+
+It does **not** call your phone.
+
+You start a voice loop in the browser. The agent speaks first, as if it just
+dialled you. You are not the company. You play the other party — by default
+**Ramesh, the driver** — and you push a real desk problem at it.
+
+That is the first baseline: Gemini + Sarvam (or Deepgram/Azure) + this
+coordinator, on one hard conversation. The first attempt will be rough. The
+point is to hear *where* it breaks: language, invented numbers, folding on
+rate, or never closing.
+
+```bash
+cp .env.example .env          # GOOGLE_API_KEY + SARVAM_API_KEY
+pip install -e ".[voice]"
+python scripts/run_local.py --brief     # read the case, no mic
+python scripts/run_local.py             # browser mic; agent greets first
+```
+
+Allow the microphone. Wait. Answer like a driver. Close the tab when a real
+person would hang up. The terminal prints a scorecard.
+
+Then play the next party against the same saved state:
+
+```bash
+python scripts/run_local.py --party warehouse
+python scripts/run_local.py --party customer
+python scripts/run_local.py --fresh     # wipe and start the case over
+```
+
+A real three-phone sequential outbound (Exotel / Vapi) is a later test. Local
+is one human, one party, one call, on purpose.
+
+## The case you are playing
+
+**Same-day Whitefield → Patancheru** (`MM-1001`). Composite of a desk failure
+that shows up on Amazon/Flipkart inbound appointments and FMCG DC slots
+every diesel spike and festive rush.
+
+| Fact | Value |
+| --- | --- |
+| Clock | Thu 14 Aug 2026, 8:35am IST |
+| Load | 19ft, 8 pallets, Whitefield 3PL → Northstar Foods DC, Patancheru |
+| Tonight's DC window | 8pm–10pm. Next receiving: Saturday |
+| Must gate-out Whitefield | 12:00 or the appointment dies |
+| Reserved dock | 10:30–11:30, released at noon |
+| Contracted last night | ₹21,000 |
+| Rate card | min ₹18k / typical ₹21k / **max ₹24k** |
+| Driver (you) | Ramesh, Electronic City, wants **₹28,000** this morning |
+| Miss cost (internal) | OTIF fail + ₹15,000. Agent must not dump this number at the driver |
+
+**You (driver):** hold ₹28k. If the agent is specific and respectful and offers
+at or under ₹24k with a real 10:30 dock, you may settle ~₹23–24k and give a
+10:15 Whitefield ETA. If it sounds like a chatbot or invents a rate, hold or
+hang up.
+
+**The agent must:** look up the rate card before quoting, stay at or under
+₹24k or escalate, not invent slots, get a rate and an arrival time, then close.
+
+Automatic checks after the call: did it use the rate card, did it close the
+party, did it accept above the cap. Language and “would a real driver stay”
+you score by ear.
 
 ## Stack
 
@@ -37,6 +93,8 @@ middle-mile-voice-agent/
 │   │   ├── coordinator.py     # multi-party brain
 │   │   ├── prompts.py         # spoken Hinglish
 │   │   └── state.py           # session memory
+│   ├── scenarios/             # eval case files + playbooks
+│   ├── eval/                  # debrief + local session save
 │   ├── tools/
 │   │   ├── rate_card.py
 │   │   ├── capacity.py
@@ -87,15 +145,7 @@ Deepgram + Azure Hindi TTS work if you skip Sarvam. Set `STT_PROVIDER` / `TTS_PR
 
 ## Phase 1 — local 1:1 (no phone)
 
-```bash
-python scripts/run_local.py
-```
-
-Pipecat prints a local URL. Open it, allow the mic, talk in Hinglish.
-
-Demo shipment `MM-1001` is preloaded: BLR → HYD, 19ft, pickup 2026-08-14. Ask about rate or warehouse slots.
-
-Daily instead of Small WebRTC:
+Covered above. Daily instead of Small WebRTC:
 
 ```bash
 python scripts/run_local.py --transport daily
@@ -164,12 +214,18 @@ Needs `VAPI_API_KEY` and `VAPI_PHONE_NUMBER_ID`. Optional `VAPI_ASSISTANT_ID`; o
 
 ## Phase 5 — evaluation
 
-Record 20–30 real negotiations and score:
+First: run the Whitefield case 5–10 times as the driver. Write down, per run:
 
-- Task completion
-- Hinglish / Hindi accuracy
-- Turns to resolution
-- Cost per successful negotiation
+- Auto pass / fail from the terminal scorecard
+- Hinglish: could you stay in mixed Hindi-English without the agent snapping to English
+- Constraint: did it go over ₹24k, invent a slot, or leak the penalty
+- Close: did it end the call or wander
+- Feel: would a real driver stay
+
+Then warehouse, then customer, using the saved session so the agent has to
+carry the rate it already “agreed”.
+
+Later, on real phones, record 20–30 live negotiations and add cost per success.
 
 ## Demo data
 
