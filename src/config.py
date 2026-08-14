@@ -18,7 +18,9 @@ class Settings(BaseSettings):
     )
 
     google_api_key: str = ""
-    llm_model: str = "gemini-2.5-flash"
+    openrouter_api_key: str = ""
+    llm_provider: Literal["openrouter", "google"] = "openrouter"
+    llm_model: str = "google/gemini-2.5-flash"
 
     sarvam_api_key: str = ""
     deepgram_api_key: str = ""
@@ -71,9 +73,21 @@ class Settings(BaseSettings):
             "No TTS key found. Set SARVAM_API_KEY or AZURE_SPEECH_KEY + AZURE_SPEECH_REGION"
         )
 
+    def resolved_llm(self) -> Literal["openrouter", "google"]:
+        if self.llm_provider == "openrouter" and self.openrouter_api_key:
+            return "openrouter"
+        if self.google_api_key:
+            return "google"
+        if self.openrouter_api_key:
+            return "openrouter"
+        raise RuntimeError(
+            "No LLM key found. Set OPENROUTER_API_KEY (any model) or GOOGLE_API_KEY"
+        )
+
     def require_llm(self) -> str:
-        if not self.google_api_key:
-            raise RuntimeError("GOOGLE_API_KEY is required for Gemini")
+        provider = self.resolved_llm()
+        if provider == "openrouter":
+            return self.openrouter_api_key
         return self.google_api_key
 
 

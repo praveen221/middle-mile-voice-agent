@@ -20,7 +20,7 @@ dependencies = [
 
 [project.optional-dependencies]
 voice = [
-    "pipecat-ai[google,sarvam,deepgram,azure,daily,webrtc,runner,silero]>=0.0.95",
+    "pipecat-ai[google,openrouter,sarvam,deepgram,azure,daily,webrtc,runner,silero]>=0.0.95",
 ]
 dev = [
     "pytest>=8.0",

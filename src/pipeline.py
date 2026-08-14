@@ -58,13 +58,28 @@ def build_tts(settings: Settings):
 
 
 def build_llm(settings: Settings, system_instruction: str):
+    provider = settings.resolved_llm()
+    settings.require_llm()
+    if provider == "openrouter":
+        from pipecat.services.openrouter.llm import OpenRouterLLMService
+
+        return OpenRouterLLMService(
+            api_key=settings.openrouter_api_key,
+            settings=OpenRouterLLMService.Settings(
+                model=settings.llm_model,
+                system_instruction=system_instruction,
+            ),
+        )
+
     from pipecat.services.google.llm import GoogleLLMService
 
-    settings.require_llm()
+    model = settings.llm_model
+    if model.startswith("google/"):
+        model = model.split("/", 1)[1]
     return GoogleLLMService(
         api_key=settings.google_api_key,
         settings=GoogleLLMService.Settings(
-            model=settings.llm_model,
+            model=model,
             system_instruction=system_instruction,
         ),
     )
@@ -105,9 +120,10 @@ async def run_bot(transport, runner_args, session: NegotiationSession) -> None:
 
     settings = get_settings()
     logger.info(
-        "Starting middle-mile bot session={} party={} stt={} tts={}",
+        "Starting middle-mile bot session={} party={} llm={} stt={} tts={}",
         session.session_id,
         session.current_party,
+        settings.resolved_llm(),
         settings.resolved_stt(),
         settings.resolved_tts(),
     )

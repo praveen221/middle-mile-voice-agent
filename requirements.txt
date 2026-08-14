@@ -5,7 +5,7 @@ pydantic-settings>=2.6
 python-dotenv>=1.0
 
 # Voice loop (Phase 1+). Comment out if you only want to unit-test tools.
-pipecat-ai[google,sarvam,deepgram,azure,daily,webrtc,runner,silero]>=0.0.95
+pipecat-ai[google,openrouter,sarvam,deepgram,azure,daily,webrtc,runner,silero]>=0.0.95
 
 # Optional session backend
 # redis>=5.0

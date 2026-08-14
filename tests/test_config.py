@@ -17,3 +17,23 @@ def test_tts_falls_back_to_azure():
         azure_speech_region="centralindia",
     )
     assert settings.resolved_tts() == "azure"
+
+
+def test_llm_prefers_openrouter():
+    settings = Settings(
+        _env_file=None,
+        llm_provider="openrouter",
+        openrouter_api_key="or",
+        google_api_key="g",
+    )
+    assert settings.resolved_llm() == "openrouter"
+
+
+def test_llm_falls_back_to_google():
+    settings = Settings(
+        _env_file=None,
+        llm_provider="openrouter",
+        openrouter_api_key="",
+        google_api_key="g",
+    )
+    assert settings.resolved_llm() == "google"

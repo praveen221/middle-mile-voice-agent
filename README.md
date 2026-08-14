@@ -138,8 +138,10 @@ cp .env.example .env
 
 Minimum to hear the agent locally:
 
-- `GOOGLE_API_KEY` — [Google AI Studio](https://aistudio.google.com/apikey)
-- `SARVAM_API_KEY` — [Sarvam dashboard](https://dashboard.sarvam.ai/) (STT + TTS, Hinglish)
+- `OPENROUTER_API_KEY` — [OpenRouter](https://openrouter.ai/keys) (swap models via `LLM_MODEL`)
+- `SARVAM_API_KEY` — [Sarvam dashboard](https://dashboard.sarvam.ai/) → **Sarvam API** (STT + TTS)
+
+`GOOGLE_API_KEY` is only needed if you skip OpenRouter.
 
 Deepgram + Azure Hindi TTS work if you skip Sarvam. Set `STT_PROVIDER` / `TTS_PROVIDER` accordingly.
 
