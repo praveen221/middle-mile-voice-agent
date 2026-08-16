@@ -19,16 +19,18 @@ class Settings(BaseSettings):
 
     google_api_key: str = ""
     openrouter_api_key: str = ""
-    llm_provider: Literal["openrouter", "google"] = "openrouter"
-    llm_model: str = "google/gemini-2.5-flash"
+    llm_provider: Literal["sarvam", "openrouter", "google"] = "sarvam"
+    llm_model: str = "sarvam-105b"
 
     sarvam_api_key: str = ""
     deepgram_api_key: str = ""
-    stt_provider: Literal["sarvam", "deepgram"] = "sarvam"
+    cartesia_api_key: str = ""
+    smallest_api_key: str = ""
+    stt_provider: Literal["sarvam", "deepgram", "azure", "cartesia", "smallest"] = "sarvam"
 
     azure_speech_key: str = ""
     azure_speech_region: str = ""
-    tts_provider: Literal["sarvam", "azure"] = "sarvam"
+    tts_provider: Literal["sarvam", "azure", "deepgram", "cartesia", "smallest"] = "sarvam"
     sarvam_tts_voice: str = "shubh"
     azure_tts_voice: str = "hi-IN-SwaraNeural"
 
@@ -73,19 +75,25 @@ class Settings(BaseSettings):
             "No TTS key found. Set SARVAM_API_KEY or AZURE_SPEECH_KEY + AZURE_SPEECH_REGION"
         )
 
-    def resolved_llm(self) -> Literal["openrouter", "google"]:
+    def resolved_llm(self) -> Literal["sarvam", "openrouter", "google"]:
+        if self.llm_provider == "sarvam" and self.sarvam_api_key:
+            return "sarvam"
         if self.llm_provider == "openrouter" and self.openrouter_api_key:
             return "openrouter"
         if self.google_api_key:
             return "google"
+        if self.sarvam_api_key:
+            return "sarvam"
         if self.openrouter_api_key:
             return "openrouter"
         raise RuntimeError(
-            "No LLM key found. Set OPENROUTER_API_KEY (any model) or GOOGLE_API_KEY"
+            "No LLM key found. Set SARVAM_API_KEY, OPENROUTER_API_KEY, or GOOGLE_API_KEY"
         )
 
     def require_llm(self) -> str:
         provider = self.resolved_llm()
+        if provider == "sarvam":
+            return self.sarvam_api_key
         if provider == "openrouter":
             return self.openrouter_api_key
         return self.google_api_key

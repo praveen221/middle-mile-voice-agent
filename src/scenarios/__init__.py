@@ -1,9 +1,11 @@
 from src.agent.state import Party
+from src.scenarios.bhiwandi_gate_hold import SCENARIO as BHIWANDI_GATE_HOLD
 from src.scenarios.same_day_appointment import SCENARIO as SAME_DAY_APPOINTMENT
 from src.scenarios.types import PartyPlaybook, Scenario
 
 SCENARIOS: dict[str, Scenario] = {
     SAME_DAY_APPOINTMENT.id: SAME_DAY_APPOINTMENT,
+    BHIWANDI_GATE_HOLD.id: BHIWANDI_GATE_HOLD,
 }
 
 DEFAULT_SCENARIO_ID = SAME_DAY_APPOINTMENT.id
@@ -86,6 +88,7 @@ def _wrap(text: str, width: int = 78) -> str:
 
 
 __all__ = [
+    "BHIWANDI_GATE_HOLD",
     "DEFAULT_SCENARIO_ID",
     "SAME_DAY_APPOINTMENT",
     "SCENARIOS",

@@ -19,6 +19,16 @@ def test_tts_falls_back_to_azure():
     assert settings.resolved_tts() == "azure"
 
 
+def test_llm_prefers_sarvam():
+    settings = Settings(
+        _env_file=None,
+        llm_provider="sarvam",
+        sarvam_api_key="sv",
+        openrouter_api_key="or",
+    )
+    assert settings.resolved_llm() == "sarvam"
+
+
 def test_llm_prefers_openrouter():
     settings = Settings(
         _env_file=None,

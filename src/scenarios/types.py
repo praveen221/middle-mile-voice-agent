@@ -35,6 +35,8 @@ class Scenario(BaseModel):
     what_this_tests: str
     playbooks: dict[Party, PartyPlaybook]
     openings: dict[Party, str] = Field(default_factory=dict)
+    expected_actions: list[str] = Field(default_factory=list)
+    forbidden: list[str] = Field(default_factory=list)
 
     def playbook(self, party: Party) -> PartyPlaybook:
         return self.playbooks[party]

@@ -35,7 +35,9 @@ PARTY_GOALS: dict[Party, str] = {
 }
 
 
-def opening_line(party: Party, session: NegotiationSession) -> str:
+def opening_line(party: Party, session: NegotiationSession, situation=None) -> str:
+    if situation is not None and getattr(situation, "opening_line", ""):
+        return situation.opening_line
     if session.scenario_id:
         scenario = get_scenario(session.scenario_id)
         scripted = scenario.openings.get(party)
@@ -64,19 +66,36 @@ def opening_line(party: Party, session: NegotiationSession) -> str:
     return f"Human desk, {shipment} par escalate kar raha hoon. State: {session.snapshot()}"
 
 
-def build_system_prompt(session: NegotiationSession) -> str:
+def build_system_prompt(session: NegotiationSession, situation=None) -> str:
     party = session.current_party
     parts = [VOICE_RULES.strip(), PARTY_GOALS[party]]
-    if session.scenario_id:
+    if situation is not None:
+        parts.extend(
+            [
+                f"Case: {situation.title}. {situation.clock}".strip(),
+                situation.story,
+                situation.agent_constraints,
+            ]
+        )
+        if situation.expected_actions:
+            parts.append("Expected on this call:\n- " + "\n- ".join(situation.expected_actions))
+        if situation.forbidden:
+            parts.append("Forbidden:\n- " + "\n- ".join(situation.forbidden))
+        parts.append(f"Success: {situation.success_means}")
+    elif session.scenario_id:
         scenario = get_scenario(session.scenario_id)
         parts.extend(
             [
                 f"Case: {scenario.title}. {scenario.clock}",
                 scenario.story,
                 scenario.agent_constraints,
-                f"Success: {scenario.success_means}",
             ]
         )
+        if scenario.expected_actions:
+            parts.append("Expected on this call:\n- " + "\n- ".join(scenario.expected_actions))
+        if scenario.forbidden:
+            parts.append("Forbidden:\n- " + "\n- ".join(scenario.forbidden))
+        parts.append(f"Success: {scenario.success_means}")
     else:
         parts.append(
             "You are a middle-mile logistics coordinator running sequential "

@@ -26,8 +26,9 @@ load_dotenv(ROOT / ".env", override=True)
 
 from src.agent.state import InMemorySessionStore, Party, reset_store  # noqa: E402
 from src.eval.session_file import load_session  # noqa: E402
+from src.lab.situation import load_situation  # noqa: E402
 from src.pipeline import bootstrap_session, run_bot, transport_params  # noqa: E402
-from src.scenarios import DEFAULT_SCENARIO_ID, format_playbook, get_scenario  # noqa: E402
+from src.scenarios import DEFAULT_SCENARIO_ID, SCENARIOS, format_playbook, get_scenario  # noqa: E402
 
 _LOCAL_ARGS: argparse.Namespace | None = None
 
@@ -42,7 +43,7 @@ def _parse_local_args(argv: list[str]) -> argparse.Namespace:
         choices=[p.value for p in Party if p is not Party.HUMAN],
         help="Who you are playing. The agent thinks it called this party.",
     )
-    parser.add_argument("--scenario", default=DEFAULT_SCENARIO_ID)
+    parser.add_argument("--scenario", default=None)
     parser.add_argument("--session", default="local-eval")
     parser.add_argument(
         "--fresh",
@@ -71,10 +72,19 @@ def prepare_session(args: argparse.Namespace):
         store.put(saved)
         print(f"Resumed session from {os.environ.get('MM_SESSION_FILE')}", flush=True)
 
+    situation = load_situation()
+    scenario_id = args.scenario or (
+        situation.id if situation.id in SCENARIOS else DEFAULT_SCENARIO_ID
+    )
+    party = situation.party or args.party
     return bootstrap_session(
         args.session if saved is None else saved.session_id,
-        party=args.party,
-        scenario_id=args.scenario,
+        party=party,
+        scenario_id=scenario_id,
+        shipment_id=situation.shipment_id or None,
+        origin=situation.origin or None,
+        destination=situation.destination or None,
+        vehicle_type=situation.vehicle_type or None,
     )
 
 
@@ -90,7 +100,16 @@ async def bot(runner_args):
 if __name__ == "__main__":
     os.environ.setdefault("MM_SESSION_FILE", str(ROOT / ".local" / "last-session.json"))
     local = _parse_local_args(sys.argv[1:])
-    print(format_playbook(get_scenario(local.scenario), Party(local.party)), flush=True)
+    situation = load_situation()
+    scenario_id = local.scenario or (
+        situation.id if situation.id in SCENARIOS else DEFAULT_SCENARIO_ID
+    )
+    party = Party(situation.party or local.party)
+    print(format_playbook(get_scenario(scenario_id), party), flush=True)
+    if situation.tester_name:
+        print(f"TESTER    {situation.tester_name}", flush=True)
+    if situation.tester_brief:
+        print("\nLAB SITUATION (editable — this is what you play)\n", situation.tester_brief, flush=True)
     if local.brief:
         raise SystemExit(0)
     _LOCAL_ARGS = local

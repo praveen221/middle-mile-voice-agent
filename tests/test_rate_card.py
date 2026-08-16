@@ -21,3 +21,12 @@ def test_normalizers():
     assert normalize_city("whitefield") == "BLR"
     assert normalize_city("patancheru") == "HYD"
     assert normalize_vehicle("Tata 407") == "407"
+
+
+def test_bhiwandi_ahmedabad_32ft():
+    row = get_rate_card("bhiwandi", "sanand", "32ft")
+    assert row["found"] is True
+    assert row["origin"] == "MUM"
+    assert row["destination"] == "AMD"
+    assert row["typical"] == 18500
+    assert row["max"] == 22000

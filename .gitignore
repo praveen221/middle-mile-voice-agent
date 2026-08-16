@@ -27,6 +27,7 @@ htmlcov/
 
 # Local runtime
 .local/
+.local/lab-stack.json
 logs/
 recordings/
 *.wav

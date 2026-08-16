@@ -16,6 +16,8 @@ RATE_CARD: dict[tuple[str, str, str], dict[str, float]] = {
     ("DEL", "MUM", "19ft"): {"min": 28000, "typical": 33000, "max": 38000},
     ("DEL", "MUM", "32ft"): {"min": 40000, "typical": 46000, "max": 52000},
     ("MUM", "PUN", "14ft"): {"min": 7000, "typical": 8500, "max": 10000},
+    ("MUM", "AMD", "32ft"): {"min": 16000, "typical": 18500, "max": 22000},
+    ("MUM", "AMD", "19ft"): {"min": 12000, "typical": 14500, "max": 17000},
     ("HYD", "VIZ", "19ft"): {"min": 15000, "typical": 17500, "max": 20000},
 }
 
@@ -42,6 +44,10 @@ ALIASES = {
     "whitefield": "BLR",
     "patancheru": "HYD",
     "electroniccity": "BLR",
+    "bhiwandi": "MUM",
+    "ahmedabad": "AMD",
+    "amd": "AMD",
+    "sanand": "AMD",
 }
 
 

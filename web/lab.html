@@ -1,0 +1,316 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Middle-mile Lab</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Geist:wght@400;500;600&family=Inter:wght@400;500;600&display=swap" rel="stylesheet" />
+  <style>
+    :root {
+      --bg: #18181b;
+      --panel: #1c1c1f;
+      --card: #27272a;
+      --line: rgba(255,255,255,.10);
+      --text: #fafafa;
+      --muted: #a1a1aa;
+      --faint: #71717a;
+      --green: #00bb7f;
+      --green-ink: #04281c;
+      --radius: 8px;
+    }
+    * { box-sizing: border-box; }
+    html, body {
+      margin: 0; height: 100%;
+      background: var(--bg); color: var(--text);
+      font: 14px/1.4 Geist, Inter, -apple-system, "Segoe UI", sans-serif;
+      -webkit-font-smoothing: antialiased;
+    }
+    button, input, select, textarea { font: inherit; color: inherit; }
+    button { cursor: pointer; }
+    #app {
+      height: 100%;
+      display: grid;
+      grid-template-rows: 56px 1fr;
+      grid-template-columns: 320px 1fr;
+      grid-template-areas: "top top" "side main";
+    }
+    #top {
+      grid-area: top;
+      display: flex; align-items: center; gap: 12px;
+      padding: 0 14px;
+      background: var(--panel);
+      border-bottom: 1px solid var(--line);
+    }
+    #brand { display: flex; align-items: center; gap: 8px; min-width: 132px; }
+    #brand svg { width: 22px; height: 22px; }
+    #brand strong { font-weight: 600; font-size: 14px; letter-spacing: -.01em; }
+    #stack { display: flex; gap: 8px; align-items: end; flex: 1; min-width: 0; }
+    #stack label {
+      display: flex; flex-direction: column; gap: 3px;
+      color: var(--faint); font-size: 10px; letter-spacing: .08em; text-transform: uppercase; font-weight: 600;
+    }
+    #stack select { max-width: 176px; }
+    select, input, textarea {
+      background: var(--card);
+      border: 1px solid var(--line);
+      border-radius: var(--radius);
+      padding: 7px 10px;
+      color: var(--text);
+    }
+    select:focus, input:focus, textarea:focus {
+      outline: none;
+      border-color: var(--green);
+      box-shadow: 0 0 0 3px rgba(0,187,127,.2);
+    }
+    textarea { resize: vertical; width: 100%; min-height: 88px; line-height: 1.45; }
+    #apply {
+      background: var(--green); color: var(--green-ink); border: 0;
+      padding: 8px 14px; font-weight: 600; border-radius: var(--radius);
+      white-space: nowrap; height: 36px;
+    }
+    #apply:hover { filter: brightness(1.06); }
+    #side {
+      grid-area: side;
+      background: var(--panel);
+      border-right: 1px solid var(--line);
+      display: flex; flex-direction: column; min-height: 0;
+    }
+    #side-head { padding: 14px 16px 10px; border-bottom: 1px solid var(--line); }
+    #side-head h2 { margin: 0; font-size: 13px; font-weight: 600; letter-spacing: .06em; text-transform: uppercase; color: var(--muted); }
+    #side-head p { margin: 6px 0 0; color: var(--faint); font-size: 12px; }
+    #side-form { padding: 12px 16px 20px; overflow: auto; flex: 1; display: flex; flex-direction: column; gap: 10px; }
+    .row { display: flex; flex-direction: column; gap: 4px; }
+    .row > span, .row > label {
+      color: var(--faint); font-size: 10px; letter-spacing: .08em; text-transform: uppercase; font-weight: 600;
+    }
+    .hint { color: var(--faint); font-size: 11px; text-transform: none; letter-spacing: 0; font-weight: 400; }
+    .tabs { display: flex; background: var(--card); border: 1px solid var(--line); border-radius: var(--radius); padding: 3px; gap: 2px; }
+    .tabs button {
+      flex: 1; background: transparent; border: 0; color: var(--muted);
+      padding: 6px 8px; font-size: 12px; font-weight: 500; border-radius: 6px;
+    }
+    .tabs button.on { background: var(--bg); color: var(--text); }
+    .pane { display: none; flex-direction: column; gap: 10px; }
+    .pane.on { display: flex; }
+    #main { grid-area: main; display: flex; flex-direction: column; min-width: 0; background: var(--bg); }
+    #status {
+      padding: 8px 14px; color: var(--muted); font-size: 12px;
+      border-bottom: 1px solid var(--line);
+    }
+    iframe { flex: 1; width: 100%; border: 0; background: var(--bg); }
+  </style>
+</head>
+<body>
+  <div id="app">
+    <header id="top">
+      <div id="brand">
+        <svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M4 8.5 12 4l8 4.5v7L12 20l-8-4.5v-7Zm8 1.2L7.2 12 12 14.3 16.8 12 12 9.7Z"/></svg>
+        <strong>Middle mile</strong>
+      </div>
+      <div id="stack">
+        <label>STT<select id="stt"></select></label>
+        <label>STT lang<select id="stt_language"></select></label>
+        <label>LLM<select id="llm_model"></select></label>
+        <label>TTS<select id="tts"></select></label>
+        <label>TTS lang<select id="tts_language"></select></label>
+        <label>Voice<select id="tts_voice"></select></label>
+      </div>
+      <button id="apply" type="button">Save</button>
+    </header>
+
+    <aside id="side">
+      <div id="side-head">
+        <h2>Situation</h2>
+        <p>The agent hears story and rules. You play the brief. Hidden stay off-model.</p>
+      </div>
+      <div id="side-form">
+        <label class="row"><span>Preset</span><select id="preset"></select></label>
+        <label class="row"><span>Tester</span><input id="tester_name" placeholder="Who is on the mic" /></label>
+        <label class="row"><span>Title</span><input id="title" /></label>
+        <div class="tabs">
+          <button type="button" class="on" data-tab="agent">Agent hears</button>
+          <button type="button" data-tab="tester">You play</button>
+        </div>
+        <div id="pane-agent" class="pane on">
+          <label class="row"><span>Story</span><textarea id="story"></textarea></label>
+          <label class="row"><span>Constraints</span><textarea id="agent_constraints"></textarea></label>
+          <label class="row"><span>Forbidden</span><textarea id="forbidden"></textarea></label>
+          <label class="row"><span>Expected</span><textarea id="expected_actions"></textarea></label>
+          <label class="row"><span>Success</span><textarea id="success_means" style="min-height:72px"></textarea></label>
+        </div>
+        <div id="pane-tester" class="pane">
+          <label class="row"><span>Opening line</span><input id="opening_line" /></label>
+          <label class="row"><span>Tester brief</span><span class="hint">Not sent to the model</span><textarea id="tester_brief"></textarea></label>
+          <label class="row"><span>Hidden walk-away</span><span class="hint">Not sent to the model</span><textarea id="hidden"></textarea></label>
+        </div>
+      </div>
+    </aside>
+
+    <main id="main">
+      <div id="status">Pick a stack and situation, Save, then Connect.</div>
+      <iframe id="play" src="http://localhost:7860/client/" title="Pipecat Playground"></iframe>
+    </main>
+  </div>
+  <script>
+    const $ = (id) => document.getElementById(id);
+    let catalog = null;
+    let presets = [];
+
+    function fill(sel, items, getVal, getLabel, enabled) {
+      const prev = sel.value;
+      sel.innerHTML = "";
+      for (const item of items) {
+        const opt = document.createElement("option");
+        opt.value = getVal(item);
+        opt.textContent = getLabel(item);
+        if (enabled && !enabled(item)) {
+          opt.disabled = true;
+          opt.textContent += " · no key";
+        }
+        sel.appendChild(opt);
+      }
+      if ([...sel.options].some((o) => o.value === prev)) sel.value = prev;
+    }
+
+    function currentVendor(kind) {
+      return (catalog[kind] || []).find((v) => v.id === $(kind).value);
+    }
+    function langId(item) { return typeof item === "string" ? item : item.id; }
+    function langLabel(item) { return typeof item === "string" ? item : (item.label || item.id); }
+    function lines(text) { return (text || "").split("\n").map((s) => s.trim()).filter(Boolean); }
+    function shortModel(id) { return (id || "").split("/").pop(); }
+
+    function refreshVendorFields() {
+      const stt = currentVendor("stt");
+      const tts = currentVendor("tts");
+      fill($("stt_language"), (stt && stt.languages) || [{id:"hi", label:"Hindi"}], langId, langLabel);
+      fill($("tts_language"), (tts && tts.languages) || [{id:"hi", label:"Hindi"}], langId, langLabel);
+      fill($("tts_voice"), (tts && tts.voices) || [{id:"default", label:"default"}], (x) => x.id, (x) => x.label);
+    }
+
+    function applySituation(s) {
+      if (!s) return;
+      $("preset").value = s.id;
+      $("tester_name").value = s.tester_name || $("tester_name").value;
+      $("title").value = s.title || "";
+      $("opening_line").value = s.opening_line || "";
+      $("story").value = s.story || "";
+      $("agent_constraints").value = s.agent_constraints || "";
+      $("forbidden").value = (s.forbidden || []).join("\n");
+      $("expected_actions").value = (s.expected_actions || []).join("\n");
+      $("success_means").value = s.success_means || "";
+      $("tester_brief").value = s.tester_brief || "";
+      $("hidden").value = s.hidden || "";
+    }
+
+    function readSituation() {
+      const preset = presets.find((p) => p.id === $("preset").value) || {};
+      return {
+        id: $("preset").value,
+        title: $("title").value,
+        party: preset.party || "driver",
+        tester_name: $("tester_name").value,
+        tester_brief: $("tester_brief").value,
+        hidden: $("hidden").value,
+        story: $("story").value,
+        agent_constraints: $("agent_constraints").value,
+        expected_actions: lines($("expected_actions").value),
+        forbidden: lines($("forbidden").value),
+        success_means: $("success_means").value,
+        opening_line: $("opening_line").value,
+        clock: preset.clock || "",
+        shipment_id: preset.shipment_id || "",
+        origin: preset.origin || "",
+        destination: preset.destination || "",
+        vehicle_type: preset.vehicle_type || "",
+      };
+    }
+
+    function savedLine(stack, situation, reused) {
+      const sit = (situation && situation.title) || "Untitled situation";
+      const bits = [
+        stack.stt,
+        stack.stt_language,
+        shortModel(stack.llm_model),
+        stack.tts,
+        stack.tts_language,
+      ].filter(Boolean).join(" · ");
+      return (reused ? "Unchanged. " : "Saved. ") + sit + " · " + bits + ". Connect when ready.";
+    }
+
+    async function boot() {
+      const cat = await fetch("/api/catalog").then((r) => r.json());
+      catalog = cat;
+      presets = cat.presets || [];
+      fill($("stt"), cat.stt, (v) => v.id, (v) => v.label, (v) => v.enabled);
+      fill($("tts"), cat.tts, (v) => v.id, (v) => v.label, (v) => v.enabled);
+      fill($("preset"), presets, (p) => p.id, (p) => p.title);
+      const llms = [...(cat.llm_favorites || []), ...(cat.llm_all || [])];
+      const seen = new Set();
+      const unique = [];
+      for (const m of llms) {
+        if (seen.has(m.id)) continue;
+        seen.add(m.id);
+        unique.push(m);
+      }
+      fill($("llm_model"), unique, (m) => m.id, (m) => m.name || m.id);
+      const firstOn = cat.stt.find((v) => v.enabled);
+      if (firstOn) $("stt").value = firstOn.id;
+      const firstTts = cat.tts.find((v) => v.enabled);
+      if (firstTts) $("tts").value = firstTts.id;
+      if (cat.stack) {
+        if (cat.stack.stt) $("stt").value = cat.stack.stt;
+        if (cat.stack.tts) $("tts").value = cat.stack.tts;
+        if (cat.stack.llm_model) $("llm_model").value = cat.stack.llm_model;
+      }
+      refreshVendorFields();
+      if (cat.stack) {
+        if (cat.stack.stt_language) $("stt_language").value = cat.stack.stt_language;
+        if (cat.stack.tts_language) $("tts_language").value = cat.stack.tts_language;
+        if (cat.stack.tts_voice) $("tts_voice").value = cat.stack.tts_voice;
+      }
+      applySituation(cat.situation || presets[0]);
+      $("status").textContent = cat.active_config
+        ? savedLine(cat.stack || {}, cat.situation || {}, true)
+        : "Pick a stack and situation, Save, then Connect.";
+    }
+
+    $("stt").addEventListener("change", refreshVendorFields);
+    $("tts").addEventListener("change", refreshVendorFields);
+    $("preset").addEventListener("change", () => {
+      const name = $("tester_name").value;
+      applySituation(presets.find((p) => p.id === $("preset").value));
+      $("tester_name").value = name;
+    });
+    document.querySelectorAll(".tabs button").forEach((btn) => {
+      btn.addEventListener("click", () => {
+        document.querySelectorAll(".tabs button").forEach((b) => b.classList.toggle("on", b === btn));
+        $("pane-agent").classList.toggle("on", btn.dataset.tab === "agent");
+        $("pane-tester").classList.toggle("on", btn.dataset.tab === "tester");
+      });
+    });
+    $("apply").addEventListener("click", async () => {
+      const body = {
+        stt: $("stt").value,
+        stt_language: $("stt_language").value,
+        tts: $("tts").value,
+        tts_language: $("tts_language").value,
+        tts_voice: $("tts_voice").value,
+        llm_model: $("llm_model").value,
+        llm_provider: $("llm_model").value === "sarvam-105b" ? "sarvam" : "openrouter",
+        situation: readSituation(),
+      };
+      const data = await fetch("/api/stack", {
+        method: "POST",
+        headers: {"Content-Type":"application/json"},
+        body: JSON.stringify(body),
+      }).then((r) => r.json());
+      $("status").textContent = savedLine(data.stack || body, data.situation || body.situation, data.config && data.config.reused);
+    });
+
+    boot().catch((err) => { $("status").textContent = String(err); });
+  </script>
+</body>
+</html>

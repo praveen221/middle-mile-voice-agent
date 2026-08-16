@@ -127,6 +127,19 @@ SCENARIO = Scenario(
             hidden="A late truck at 10:05 with a prior call can sometimes sneak in. Do not offer that.",
         ),
     },
+    expected_actions=[
+        "Call get_rate_card before quoting any rupee figure",
+        "Confirm vehicle is a 19ft closed body and where Ramesh is right now",
+        "Offer a number inside the card (typical 21000 up to max 24000) or refuse and escalate",
+        "Get a pickup arrival time that still makes the 10:30 Whitefield dock",
+        "When this party is done, call end_party_call with the outcome and a one-line summary",
+    ],
+    forbidden=[
+        "Inventing a rate, dock slot, or ETA without a tool",
+        "Agreeing above 24000",
+        "Telling the driver the 15000 OTIF penalty number",
+        "Promising Patancheru will keep the gate open after 10pm",
+    ],
     openings={
         Party.DRIVER: (
             "Namaste Ramesh bhai, middle-mile desk se call hai. Whitefield se "

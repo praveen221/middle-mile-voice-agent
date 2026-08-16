@@ -2,6 +2,8 @@
 
 from __future__ import annotations
 
+from pipecat.services.llm_service import FunctionCallParams
+
 from src.agent.state import get_store
 from src.tools.capacity import check_capacity
 from src.tools.negotiation import end_party_call, update_negotiation_state
@@ -22,7 +24,6 @@ def trace_tool(session_id: str, name: str) -> None:
 
 def make_voice_tools(session_id: str):
     """Build tool callables closed over this call's session_id."""
-    from pipecat.services.llm_service import FunctionCallParams
 
     async def get_rate_card_tool(
         params: FunctionCallParams,
