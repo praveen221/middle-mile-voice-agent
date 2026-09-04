@@ -22,7 +22,7 @@ def test_create_outbound_transient_assistant():
         settings=Settings(_env_file=None, vapi_api_key="vapi-secret", vapi_phone_number_id="pn-1"),
         transport=httpx.MockTransport(handler),
     )
-    session = NegotiationSession(session_id="s1", current_party=Party.DRIVER)
+    session = NegotiationSession(session_id="s1", current_party=Party.VENDOR)
     call = client.create_outbound("+919800000001", session=session)
     assert call.id == "call-9"
 

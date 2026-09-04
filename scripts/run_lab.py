@@ -27,9 +27,9 @@ import uvicorn
 from src.eval.db import CallDB
 from src.lab.catalog import openrouter_models, speech_catalog
 from src.lab.situation import LabSituation, load_situation, presets, save_situation
-from src.lab.stack import VoiceStack, load_stack, save_stack
+from src.lab.stack import VoiceStack, load_stack, normalize_stack, save_stack
 
-app = FastAPI(title="middle-mile lab")
+app = FastAPI(title="voice-agent lab")
 
 
 class StackIn(BaseModel):
@@ -38,6 +38,8 @@ class StackIn(BaseModel):
     tts: str
     tts_language: str = "hi"
     tts_voice: str = "shubh"
+    tts_model: str | None = None
+    stt_model: str | None = None
     llm_model: str
     llm_provider: str = "openrouter"
     situation: LabSituation | None = None
@@ -133,14 +135,18 @@ def get_call(call_id: int):
 
 @app.post("/api/stack")
 def set_stack(body: StackIn):
-    stack = VoiceStack(
-        stt=body.stt,
-        stt_language=body.stt_language,
-        tts=body.tts,
-        tts_language=body.tts_language,
-        tts_voice=body.tts_voice,
-        llm_model=body.llm_model,
-        llm_provider=body.llm_provider,
+    stack = normalize_stack(
+        VoiceStack(
+            stt=body.stt,
+            stt_model=body.stt_model or "",
+            stt_language=body.stt_language,
+            tts=body.tts,
+            tts_model=body.tts_model or "",
+            tts_language=body.tts_language,
+            tts_voice=body.tts_voice,
+            llm_model=body.llm_model,
+            llm_provider=body.llm_provider,
+        )
     )
     path = save_stack(stack)
     if body.situation is not None:

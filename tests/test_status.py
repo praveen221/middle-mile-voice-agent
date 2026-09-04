@@ -1,16 +1,16 @@
-from src.tools.status import get_shipment_status
+from src.tools.status import get_record_status
 
 
-def test_known_shipment():
-    row = get_shipment_status("mm-1001")
+def test_known_record():
+    row = get_record_status("bk-1001")
     assert row["found"] is True
-    assert row["origin"] == "BLR"
-    assert row["destination"] == "HYD"
-    assert row["driver_phone"].startswith("+91")
-    assert row["driver_name"] == "Ramesh"
-    assert row["gate_out_latest"] == "12:00"
+    assert row["origin"] == "ANDHERI"
+    assert row["destination"] == "BANDRA"
+    assert row["vendor_phone"].startswith("+91")
+    assert row["vendor_name"] == "Asha"
+    assert row["gate_out_latest"] == "15:30"
 
 
-def test_missing_shipment():
-    row = get_shipment_status("NOPE")
+def test_missing_record():
+    row = get_record_status("NOPE")
     assert row["found"] is False

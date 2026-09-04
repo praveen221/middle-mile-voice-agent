@@ -73,12 +73,12 @@ class VapiClient:
             prompt = (
                 build_system_prompt(session)
                 if session is not None
-                else "You are a Hinglish middle-mile logistics coordinator on a phone call. Keep turns short."
+                else "You are a voice agent on a live phone call. Keep turns short."
             )
             payload["assistant"] = {
-                "name": "middle-mile-coordinator",
+                "name": "voice-lab-coordinator",
                 "firstMessage": first_message
-                or "Namaste, main middle-mile desk se bol raha hoon. Ek minute lagega?",
+                or "Namaste, booking desk se bol raha hoon. Ek minute lagega?",
                 "model": {
                     "provider": "google",
                     "model": self.settings.llm_model,

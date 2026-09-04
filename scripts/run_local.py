@@ -2,8 +2,8 @@
 """Local eval: the agent 'calls' you in the browser. It does not dial a phone.
 
     python scripts/run_local.py
-    python scripts/run_local.py --party driver
-    python scripts/run_local.py --party warehouse
+    python scripts/run_local.py --party vendor
+    python scripts/run_local.py --party venue
     python scripts/run_local.py --fresh
     python scripts/run_local.py --brief
     python scripts/run_local.py --transport webrtc
@@ -39,7 +39,7 @@ def _parse_local_args(argv: list[str]) -> argparse.Namespace:
     )
     parser.add_argument(
         "--party",
-        default="driver",
+        default="vendor",
         choices=[p.value for p in Party if p is not Party.HUMAN],
         help="Who you are playing. The agent thinks it called this party.",
     )
@@ -81,10 +81,10 @@ def prepare_session(args: argparse.Namespace):
         args.session if saved is None else saved.session_id,
         party=party,
         scenario_id=scenario_id,
-        shipment_id=situation.shipment_id or None,
+        record_id=situation.record_id or situation.shipment_id or None,
         origin=situation.origin or None,
         destination=situation.destination or None,
-        vehicle_type=situation.vehicle_type or None,
+        item_type=situation.item_type or situation.vehicle_type or None,
     )
 
 

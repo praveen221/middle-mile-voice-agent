@@ -5,12 +5,12 @@ build-backend = "setuptools.build_meta"
 [project]
 name = "middle-mile-voice-agent"
 version = "0.1.0"
-description = "Multi-party Hinglish voice agent for middle-mile logistics negotiations"
+description = "Open-source playground for trying STT → LLM → TTS voice agents"
 readme = "README.md"
 license = { file = "LICENSE" }
 requires-python = ">=3.11"
 authors = [{ name = "Praveen" }]
-keywords = ["voice-agent", "pipecat", "exotel", "logistics", "hinglish"]
+keywords = ["voice-agent", "pipecat", "playground", "stt", "tts"]
 dependencies = [
     "httpx>=0.27",
     "pydantic>=2.10",

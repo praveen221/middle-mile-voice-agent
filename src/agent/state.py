@@ -11,9 +11,9 @@ from pydantic import BaseModel, Field
 
 
 class Party(StrEnum):
-    DRIVER = "driver"
-    WAREHOUSE = "warehouse"
-    CUSTOMER = "customer"
+    VENDOR = "vendor"
+    VENUE = "venue"
+    CLIENT = "client"
     HUMAN = "human"
 
 
@@ -28,16 +28,16 @@ class PartyOutcome(StrEnum):
 class NegotiationSession(BaseModel):
     session_id: str
     scenario_id: str | None = None
-    goal: str = "Confirm vehicle, rate, warehouse slot, and customer delivery window."
-    shipment_id: str | None = None
+    goal: str = "Confirm the booking, the price, the slot, and the client window."
+    record_id: str | None = None
     origin: str | None = None
     destination: str | None = None
-    vehicle_type: str | None = None
-    pickup_date: str | None = None
+    item_type: str | None = None
+    slot_date: str | None = None
 
-    current_party: Party = Party.DRIVER
+    current_party: Party = Party.VENDOR
     party_order: list[Party] = Field(
-        default_factory=lambda: [Party.DRIVER, Party.WAREHOUSE, Party.CUSTOMER]
+        default_factory=lambda: [Party.VENDOR, Party.VENUE, Party.CLIENT]
     )
     party_outcomes: dict[str, PartyOutcome] = Field(default_factory=dict)
     party_summaries: dict[str, str] = Field(default_factory=dict)
@@ -63,10 +63,10 @@ class NegotiationSession(BaseModel):
         """Compact state the LLM can hear as context."""
         parts = [
             f"goal: {self.goal}",
-            f"shipment: {self.shipment_id or 'unknown'}",
-            f"lane: {self.origin or '?'} -> {self.destination or '?'}",
-            f"vehicle: {self.vehicle_type or 'unknown'}",
-            f"pickup_date: {self.pickup_date or 'unknown'}",
+            f"record: {self.record_id or 'unknown'}",
+            f"from: {self.origin or '?'} -> {self.destination or '?'}",
+            f"item: {self.item_type or 'unknown'}",
+            f"slot_date: {self.slot_date or 'unknown'}",
             f"offered_rate: {self.offered_rate}",
             f"accepted_rate: {self.accepted_rate}",
             f"current_party: {self.current_party}",
@@ -105,7 +105,7 @@ class InMemorySessionStore:
 class RedisSessionStore:
     """Optional Redis backend. Import redis only when this class is used."""
 
-    PREFIX = "mm:session:"
+    PREFIX = "lab:session:"
 
     def __init__(self, url: str) -> None:
         import redis

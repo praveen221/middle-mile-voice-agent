@@ -1,4 +1,4 @@
-"""Persist one local eval session so you can replay warehouse after driver."""
+"""Persist one local eval session so you can replay venue after vendor."""
 
 from __future__ import annotations
 

@@ -98,7 +98,8 @@ def build_tts(settings: Settings, stack: VoiceStack | None = None):
         from pipecat.services.smallest.tts import SmallestTTSService
 
         voice = (stack.tts_voice if stack else None) or "meher"
-        model = (stack.tts_model if stack else None) or "lightning_v3.1"
+        raw_model = stack.tts_model if stack else None
+        model = raw_model if raw_model and raw_model.startswith("lightning") else "lightning_v3.1"
         return SmallestTTSService(
             api_key=settings.smallest_api_key,
             settings=SmallestTTSService.Settings(voice=voice, language=language, model=model),
@@ -329,40 +330,46 @@ async def run_bot(transport, runner_args, session: NegotiationSession) -> None:
 def bootstrap_session(
     session_id: str | None = None,
     *,
-    shipment_id: str | None = None,
+    record_id: str | None = None,
     origin: str | None = None,
     destination: str | None = None,
-    vehicle_type: str | None = None,
-    pickup_date: str | None = None,
+    item_type: str | None = None,
+    slot_date: str | None = None,
     party: Party | str | None = None,
     scenario_id: str | None = None,
+    shipment_id: str | None = None,
+    vehicle_type: str | None = None,
+    pickup_date: str | None = None,
 ) -> NegotiationSession:
     coordinator = Coordinator()
     sid = session_id or os.environ.get("SESSION_ID") or "local-dev"
+    record_id = record_id or shipment_id
+    item_type = item_type or vehicle_type
+    slot_date = slot_date or pickup_date
     scenario = get_scenario(scenario_id) if scenario_id else None
     if scenario is not None:
-        shipment_id = shipment_id or scenario.shipment_id
+        record_id = record_id or scenario.record_id
         origin = origin or scenario.origin
         destination = destination or scenario.destination
-        vehicle_type = vehicle_type or scenario.vehicle_type
-        pickup_date = pickup_date or scenario.pickup_date
-    if shipment_id:
-        from src.tools.status import get_shipment_status
+        item_type = item_type or scenario.item_type
+        slot_date = slot_date or scenario.slot_date
+    if record_id:
+        from src.tools.status import get_record_status
 
-        info = get_shipment_status(shipment_id)
+        info = get_record_status(record_id)
         if info.get("found"):
             origin = origin or info.get("origin")
             destination = destination or info.get("destination")
-            vehicle_type = vehicle_type or info.get("vehicle_type")
-            pickup_date = pickup_date or info.get("pickup_date")
-    first_party = Party(party) if party else Party.DRIVER
+            item_type = item_type or info.get("item_type")
+            slot_date = slot_date or info.get("slot_date")
+    first_party = Party(party) if party else Party.VENDOR
     session = coordinator.start(
         sid,
-        shipment_id=shipment_id,
+        record_id=record_id,
         origin=origin,
         destination=destination,
-        vehicle_type=vehicle_type,
-        pickup_date=pickup_date,
+        item_type=item_type,
+        slot_date=slot_date,
         first_party=first_party,
         scenario_id=scenario.id if scenario else scenario_id,
         goal=scenario.success_means if scenario else None,

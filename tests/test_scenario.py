@@ -2,20 +2,20 @@ from src.agent.state import Party
 from src.scenarios import format_playbook, get_scenario
 
 
-def test_default_case_is_the_same_day_load():
+def test_default_case_is_the_sample_booking():
     scenario = get_scenario()
-    assert scenario.shipment_id == "MM-1001"
-    assert scenario.max_rate == 24000
-    assert scenario.contracted_rate == 21000
-    assert Party.DRIVER in scenario.playbooks
-    assert "28,000" in scenario.playbooks[Party.DRIVER].opening_posture or "28000" in scenario.playbooks[Party.DRIVER].opening_posture.replace(",", "")
+    assert scenario.record_id == "BK-1001"
+    assert scenario.max_rate == 10000
+    assert scenario.contracted_rate == 8000
+    assert Party.VENDOR in scenario.playbooks
+    assert "12,000" in scenario.playbooks[Party.VENDOR].opening_posture
 
 
 def test_playbook_says_this_is_not_a_phone_call():
-    text = format_playbook(get_scenario(), Party.DRIVER)
+    text = format_playbook(get_scenario(), Party.VENDOR)
     assert "DOES NOT CALL YOUR PHONE" in text
-    assert "Ramesh" in text
-    assert "Whitefield" in text
+    assert "Asha" in text
+    assert "Andheri" in text
 
 
 def test_unknown_scenario():
@@ -31,10 +31,10 @@ def test_bootstrap_applies_scenario(isolated_store):
 
     session = bootstrap_session(
         "t1",
-        scenario_id="same_day_appointment",
-        party="driver",
+        scenario_id="sample_price_hold",
+        party="vendor",
     )
-    assert session.scenario_id == "same_day_appointment"
-    assert session.origin == "BLR"
-    assert session.destination == "HYD"
-    assert session.current_party is Party.DRIVER
+    assert session.scenario_id == "sample_price_hold"
+    assert session.origin == "ANDHERI"
+    assert session.destination == "BANDRA"
+    assert session.current_party is Party.VENDOR

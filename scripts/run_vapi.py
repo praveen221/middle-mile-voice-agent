@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
-"""Same-day PSTN path via Vapi while Exotel Voicebot is being wired.
+"""PSTN path via Vapi while Exotel Voicebot is being wired.
 
-    python scripts/run_vapi.py --to +9198XXXXXXXX --shipment MM-1001
+    python scripts/run_vapi.py --to +9198XXXXXXXX --record BK-1001
 """
 
 from __future__ import annotations
@@ -23,26 +23,26 @@ from src.agent.coordinator import Coordinator  # noqa: E402
 from src.agent.prompts import opening_line  # noqa: E402
 from src.agent.state import Party  # noqa: E402
 from src.telephony.vapi import VapiClient  # noqa: E402
-from src.tools.status import get_shipment_status  # noqa: E402
+from src.tools.status import get_record_status  # noqa: E402
 
 
 def main() -> int:
     parser = argparse.ArgumentParser(description="Vapi outbound for one party")
     parser.add_argument("--to", required=True, help="Destination number in E.164")
-    parser.add_argument("--shipment", default="MM-1001")
+    parser.add_argument("--record", "--shipment", dest="record", default="BK-1001")
     parser.add_argument("--session", default="vapi-dev")
-    parser.add_argument("--party", default="driver", choices=[p.value for p in Party])
+    parser.add_argument("--party", default="vendor", choices=[p.value for p in Party])
     parser.add_argument("--dry-run", action="store_true")
     args = parser.parse_args()
 
-    info = get_shipment_status(args.shipment)
+    info = get_record_status(args.record)
     session = Coordinator().start(
         args.session,
-        shipment_id=args.shipment if info.get("found") else None,
+        record_id=args.record if info.get("found") else None,
         origin=info.get("origin") if info.get("found") else None,
         destination=info.get("destination") if info.get("found") else None,
-        vehicle_type=info.get("vehicle_type") if info.get("found") else None,
-        pickup_date=info.get("pickup_date") if info.get("found") else None,
+        item_type=info.get("item_type") if info.get("found") else None,
+        slot_date=info.get("slot_date") if info.get("found") else None,
         first_party=Party(args.party),
     )
 

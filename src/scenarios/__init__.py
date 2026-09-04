@@ -1,14 +1,14 @@
 from src.agent.state import Party
-from src.scenarios.bhiwandi_gate_hold import SCENARIO as BHIWANDI_GATE_HOLD
-from src.scenarios.same_day_appointment import SCENARIO as SAME_DAY_APPOINTMENT
+from src.scenarios.sample_price_hold import SCENARIO as SAMPLE_PRICE_HOLD
+from src.scenarios.sample_slot_gone import SCENARIO as SAMPLE_SLOT_GONE
 from src.scenarios.types import PartyPlaybook, Scenario
 
 SCENARIOS: dict[str, Scenario] = {
-    SAME_DAY_APPOINTMENT.id: SAME_DAY_APPOINTMENT,
-    BHIWANDI_GATE_HOLD.id: BHIWANDI_GATE_HOLD,
+    SAMPLE_PRICE_HOLD.id: SAMPLE_PRICE_HOLD,
+    SAMPLE_SLOT_GONE.id: SAMPLE_SLOT_GONE,
 }
 
-DEFAULT_SCENARIO_ID = SAME_DAY_APPOINTMENT.id
+DEFAULT_SCENARIO_ID = SAMPLE_PRICE_HOLD.id
 
 
 def get_scenario(scenario_id: str | None = None) -> Scenario:
@@ -28,10 +28,10 @@ def format_playbook(scenario: Scenario, party: Party) -> str:
             "THIS DOES NOT CALL YOUR PHONE",
             "=" * 64,
             "The agent speaks first in your browser, as if it just dialled you.",
-            "You are the other party on that call. Not the company.",
+            "You are the other party on that call. Not the desk.",
             "",
             f"SCENARIO  {scenario.title}",
-            f"SHIPMENT  {scenario.shipment_id}   {scenario.origin} → {scenario.destination}   {scenario.vehicle_type}",
+            f"RECORD    {scenario.record_id}   {scenario.origin} → {scenario.destination}   {scenario.item_type}",
             f"CLOCK     {scenario.clock}",
             f"YOU ARE   {party.value.upper()} — {book.you_are}",
             f"WHERE     {book.where}",
@@ -55,7 +55,7 @@ def format_playbook(scenario: Scenario, party: Party) -> str:
             _wrap(scenario.what_this_tests),
             "",
             "When the page opens, allow the mic and wait. The agent greets first.",
-            "Speak Hinglish. Interrupt. Hang up when a real person would.",
+            "Interrupt. Hang up when a real person would.",
             "After you close the tab, the terminal prints a scorecard.",
             "=" * 64,
             "",
@@ -88,9 +88,9 @@ def _wrap(text: str, width: int = 78) -> str:
 
 
 __all__ = [
-    "BHIWANDI_GATE_HOLD",
     "DEFAULT_SCENARIO_ID",
-    "SAME_DAY_APPOINTMENT",
+    "SAMPLE_PRICE_HOLD",
+    "SAMPLE_SLOT_GONE",
     "SCENARIOS",
     "PartyPlaybook",
     "Scenario",

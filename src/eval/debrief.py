@@ -2,7 +2,7 @@
 
 from __future__ import annotations
 
-from src.agent.state import NegotiationSession, PartyOutcome
+from src.agent.state import NegotiationSession, Party, PartyOutcome
 from src.scenarios.types import Scenario
 
 
@@ -10,7 +10,6 @@ def debrief(session: NegotiationSession, scenario: Scenario) -> dict:
     tools = list(session.extra.get("tool_calls") or [])
     rate = session.accepted_rate if session.accepted_rate is not None else session.offered_rate
     party = session.current_party.value
-    # After end_party_call the coordinator may have already advanced current_party.
     closed_parties = [
         name
         for name, outcome in session.party_outcomes.items()
@@ -20,8 +19,8 @@ def debrief(session: NegotiationSession, scenario: Scenario) -> dict:
         session.accepted_rate is not None and session.accepted_rate > scenario.max_rate
     )
     checks = {
-        "looked_up_rate_card": "get_rate_card" in tools,
-        "looked_up_shipment": "get_shipment_status" in tools,
+        "looked_up_price": "lookup_price" in tools or "get_rate_card" in tools,
+        "looked_up_record": "get_record_status" in tools or "get_shipment_status" in tools,
         "wrote_state": "update_negotiation_state" in tools,
         "closed_the_party": "end_party_call" in tools or bool(closed_parties),
         "rate_within_cap_or_escalated": (not accepted_over_max)
@@ -32,7 +31,7 @@ def debrief(session: NegotiationSession, scenario: Scenario) -> dict:
     auto_pass = all(
         checks[k]
         for k in (
-            "looked_up_rate_card",
+            "looked_up_price",
             "closed_the_party",
             "did_not_accept_over_max",
         )
@@ -52,11 +51,11 @@ def debrief(session: NegotiationSession, scenario: Scenario) -> dict:
         "checks": checks,
         "auto_pass": auto_pass,
         "human_listen_for": [
-            "Did it sound like a desk or a chatbot?",
-            "Did it quote a rate before the tool returned?",
-            "Did it dump the penalty number at the driver?",
+            "Did it sound like a person or a chatbot?",
+            "Did it quote a price before the tool returned?",
+            "Did it dump a hidden penalty number?",
             "Did you have to repeat yourself more than once?",
-            "Would a real driver stay on this call?",
+            "Would a real person stay on this call?",
         ],
     }
 
@@ -91,7 +90,7 @@ def format_debrief(report: dict) -> str:
             lines.append(f"  {party}: {text}")
     next_party = None
     outcomes = report["outcomes"]
-    for name in ("driver", "warehouse", "customer"):
+    for name in (p.value for p in (Party.VENDOR, Party.VENUE, Party.CLIENT)):
         if outcomes.get(name) in {None, "pending"}:
             next_party = name
             break

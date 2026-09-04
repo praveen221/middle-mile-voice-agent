@@ -18,11 +18,11 @@ class PartyPlaybook(BaseModel):
 class Scenario(BaseModel):
     id: str
     title: str
-    shipment_id: str
+    record_id: str
     origin: str
     destination: str
-    vehicle_type: str
-    pickup_date: str
+    item_type: str
+    slot_date: str
     clock: str
     contracted_rate: float
     max_rate: float

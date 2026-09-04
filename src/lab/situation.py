@@ -5,7 +5,7 @@ from __future__ import annotations
 import os
 from pathlib import Path
 
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, Field, model_validator
 
 from src.agent.state import Party
 from src.scenarios import SCENARIOS, Scenario
@@ -13,10 +13,13 @@ from src.scenarios import SCENARIOS, Scenario
 SITUATION_PATH = Path(".local/lab-situation.json")
 
 
+_PARTY_ALIASES = {"driver": "vendor", "warehouse": "venue", "customer": "client"}
+
+
 class LabSituation(BaseModel):
     id: str
     title: str
-    party: str = "driver"
+    party: str = "vendor"
     tester_name: str = ""
     tester_brief: str = ""
     hidden: str = ""
@@ -27,17 +30,34 @@ class LabSituation(BaseModel):
     success_means: str
     opening_line: str = ""
     clock: str = ""
-    shipment_id: str = ""
+    record_id: str = ""
     origin: str = ""
     destination: str = ""
+    item_type: str = ""
+    shipment_id: str = ""
     vehicle_type: str = ""
+
+    @model_validator(mode="before")
+    @classmethod
+    def _coerce_legacy(cls, data):
+        if not isinstance(data, dict):
+            return data
+        out = dict(data)
+        if not out.get("record_id") and out.get("shipment_id"):
+            out["record_id"] = out["shipment_id"]
+        if not out.get("item_type") and out.get("vehicle_type"):
+            out["item_type"] = out["vehicle_type"]
+        party = out.get("party")
+        if party in _PARTY_ALIASES:
+            out["party"] = _PARTY_ALIASES[party]
+        return out
 
 
 def situation_path() -> Path:
     return Path(os.environ.get("MM_LAB_SITUATION", str(SITUATION_PATH)))
 
 
-def from_scenario(scenario: Scenario, party: Party = Party.DRIVER) -> LabSituation:
+def from_scenario(scenario: Scenario, party: Party = Party.VENDOR) -> LabSituation:
     book = scenario.playbook(party)
     opening = scenario.openings.get(party, "")
     brief = "\n".join(
@@ -61,10 +81,10 @@ def from_scenario(scenario: Scenario, party: Party = Party.DRIVER) -> LabSituati
         success_means=scenario.success_means,
         opening_line=opening,
         clock=scenario.clock,
-        shipment_id=scenario.shipment_id,
+        record_id=scenario.record_id,
         origin=scenario.origin,
         destination=scenario.destination,
-        vehicle_type=scenario.vehicle_type,
+        item_type=scenario.item_type,
     )
 
 
@@ -73,9 +93,9 @@ def presets() -> list[LabSituation]:
 
 
 def default_situation() -> LabSituation:
-    from src.scenarios import BHIWANDI_GATE_HOLD
+    from src.scenarios import SAMPLE_PRICE_HOLD
 
-    return from_scenario(BHIWANDI_GATE_HOLD)
+    return from_scenario(SAMPLE_PRICE_HOLD)
 
 
 def save_situation(situation: LabSituation, path: Path | None = None) -> Path:

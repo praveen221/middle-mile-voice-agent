@@ -44,13 +44,16 @@ class Coordinator:
         session_id: str,
         *,
         goal: str | None = None,
-        shipment_id: str | None = None,
+        record_id: str | None = None,
         origin: str | None = None,
         destination: str | None = None,
+        item_type: str | None = None,
+        slot_date: str | None = None,
+        first_party: Party = Party.VENDOR,
+        scenario_id: str | None = None,
+        shipment_id: str | None = None,
         vehicle_type: str | None = None,
         pickup_date: str | None = None,
-        first_party: Party = Party.DRIVER,
-        scenario_id: str | None = None,
     ) -> NegotiationSession:
         existing = self.store.get(session_id)
         if existing:
@@ -59,11 +62,11 @@ class Coordinator:
             session_id=session_id,
             scenario_id=scenario_id,
             goal=goal or NegotiationSession.model_fields["goal"].default,
-            shipment_id=shipment_id,
+            record_id=record_id or shipment_id,
             origin=origin,
             destination=destination,
-            vehicle_type=vehicle_type,
-            pickup_date=pickup_date,
+            item_type=item_type or vehicle_type,
+            slot_date=slot_date or pickup_date,
             current_party=first_party,
             party_outcomes={p.value: PartyOutcome.PENDING for p in [first_party]},
         )
@@ -186,7 +189,7 @@ class Coordinator:
         if self._all_required_accepted(session):
             return Decision(
                 action=NextAction.COMPLETE,
-                reason="Driver, warehouse, and customer have accepted.",
+                reason="Vendor, venue, and client have accepted.",
             )
 
         nxt = self._next_unresolved(session)

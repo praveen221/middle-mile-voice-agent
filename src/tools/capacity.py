@@ -1,29 +1,33 @@
-"""Warehouse / hub capacity. Swap the table for WMS later."""
+"""Sample availability table. Swap for your own calendar."""
 
 from __future__ import annotations
 
 from datetime import date, datetime
 from typing import Any
 
-from src.tools.rate_card import normalize_city
+from src.tools.rate_card import normalize_place
 
-# Remaining outbound slots by location + ISO date.
-CAPACITY: dict[tuple[str, str], dict[str, Any]] = {
-    ("BLR", "2026-08-14"): {
-        "slots": 3,
+# Remaining slots by location + ISO date. Clock is frozen so the sample stays deterministic.
+AVAILABILITY: dict[tuple[str, str], dict[str, Any]] = {
+    ("ANDHERI", "2026-08-14"): {
+        "slots": 2,
         "next_available": "2026-08-14",
-        "window": "10:00-16:00",
-        "reserved_for": "MM-1001",
-        "reserved_window": "10:30-11:30",
-        "gate_out_latest": "12:00",
-        "note": "Dock 2 is held until 12:00. After that it is released. Next DC receiving for this customer is 2026-08-16.",
+        "window": "16:00-18:00",
+        "reserved_for": "BK-1001",
+        "reserved_window": "16:00-18:00",
+        "gate_out_latest": "15:30",
+        "note": "Room 2 is held until 15:30. After that it is released. Next opening is 2026-08-15.",
     },
-    ("BLR", "2026-08-15"): {"slots": 1, "next_available": "2026-08-15", "window": "08:00-12:00"},
-    ("HYD", "2026-08-14"): {"slots": 0, "next_available": "2026-08-15", "window": None},
-    ("HYD", "2026-08-15"): {"slots": 4, "next_available": "2026-08-15", "window": "09:00-18:00"},
-    ("CHN", "2026-08-14"): {"slots": 2, "next_available": "2026-08-14", "window": "11:00-17:00"},
-    ("DEL", "2026-08-14"): {"slots": 5, "next_available": "2026-08-14", "window": "00:00-23:59"},
-    ("MUM", "2026-08-14"): {"slots": 0, "next_available": "2026-08-16", "window": None},
+    ("ANDHERI", "2026-08-15"): {"slots": 1, "next_available": "2026-08-15", "window": "10:00-14:00"},
+    ("BANDRA", "2026-08-14"): {"slots": 0, "next_available": "2026-08-15", "window": None},
+    ("BANDRA", "2026-08-15"): {"slots": 3, "next_available": "2026-08-15", "window": "09:00-18:00"},
+    ("POWAI", "2026-08-14"): {
+        "slots": 0,
+        "next_available": "2026-08-15",
+        "window": None,
+        "note": "BK-1002 hold expired at 15:30. Next opening tomorrow.",
+    },
+    ("WORLI", "2026-08-14"): {"slots": 1, "next_available": "2026-08-14", "window": "16:00-20:00"},
 }
 
 
@@ -43,23 +47,23 @@ def _parse_date(value: str) -> str:
     return text
 
 
-def check_capacity(location: str, date_str: str) -> dict[str, Any]:
-    """Check remaining loading slots at a warehouse for a date.
+def check_availability(location: str, date_str: str) -> dict[str, Any]:
+    """Check remaining slots at a location for a date.
 
     Args:
-        location: Warehouse city or code.
+        location: Place name.
         date_str: Date as YYYY-MM-DD, or 'today' / 'tomorrow'.
     """
-    loc = normalize_city(location)
+    loc = normalize_place(location)
     day = _parse_date(date_str)
-    row = CAPACITY.get((loc, day))
+    row = AVAILABILITY.get((loc, day))
     if row is None:
         return {
             "found": False,
             "location": loc,
             "date": day,
             "slots": 0,
-            "message": "No capacity record. Treat as unknown and confirm with warehouse staff.",
+            "message": "No availability record. Treat as unknown and confirm with the venue.",
         }
     available = int(row["slots"]) > 0
     payload = {
@@ -75,3 +79,6 @@ def check_capacity(location: str, date_str: str) -> dict[str, Any]:
         if key in row:
             payload[key] = row[key]
     return payload
+
+
+check_capacity = check_availability

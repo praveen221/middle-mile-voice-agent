@@ -6,12 +6,12 @@ def test_roundtrip(tmp_path):
     path = tmp_path / "session.json"
     session = NegotiationSession(
         session_id="s1",
-        scenario_id="same_day_appointment",
-        current_party=Party.WAREHOUSE,
-        accepted_rate=23000,
+        scenario_id="sample_price_hold",
+        current_party=Party.VENUE,
+        accepted_rate=9000,
     )
     save_session(session, path)
     loaded = load_session(path)
     assert loaded is not None
-    assert loaded.accepted_rate == 23000
-    assert loaded.current_party == Party.WAREHOUSE
+    assert loaded.accepted_rate == 9000
+    assert loaded.current_party == Party.VENUE

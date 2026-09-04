@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>Middle-mile Lab</title>
+  <title>Voice Lab</title>
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Geist:wght@400;500;600&family=Inter:wght@400;500;600&display=swap" rel="stylesheet" />
@@ -107,7 +107,7 @@
     <header id="top">
       <div id="brand">
         <svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M4 8.5 12 4l8 4.5v7L12 20l-8-4.5v-7Zm8 1.2L7.2 12 12 14.3 16.8 12 12 9.7Z"/></svg>
-        <strong>Middle mile</strong>
+        <strong>Voice lab</strong>
       </div>
       <div id="stack">
         <label>STT<select id="stt"></select></label>
@@ -210,7 +210,7 @@
       return {
         id: $("preset").value,
         title: $("title").value,
-        party: preset.party || "driver",
+        party: preset.party || "vendor",
         tester_name: $("tester_name").value,
         tester_brief: $("tester_brief").value,
         hidden: $("hidden").value,
@@ -221,10 +221,10 @@
         success_means: $("success_means").value,
         opening_line: $("opening_line").value,
         clock: preset.clock || "",
-        shipment_id: preset.shipment_id || "",
+        record_id: preset.record_id || preset.shipment_id || "",
         origin: preset.origin || "",
         destination: preset.destination || "",
-        vehicle_type: preset.vehicle_type || "",
+        item_type: preset.item_type || preset.vehicle_type || "",
       };
     }
 
@@ -292,10 +292,14 @@
       });
     });
     $("apply").addEventListener("click", async () => {
+      const sttVendor = currentVendor("stt") || {};
+      const ttsVendor = currentVendor("tts") || {};
       const body = {
         stt: $("stt").value,
+        stt_model: ((sttVendor.models || [])[0] || {}).id || "",
         stt_language: $("stt_language").value,
         tts: $("tts").value,
+        tts_model: ((ttsVendor.models || [])[0] || {}).id || "",
         tts_language: $("tts_language").value,
         tts_voice: $("tts_voice").value,
         llm_model: $("llm_model").value,

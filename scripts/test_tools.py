@@ -13,9 +13,9 @@ if str(ROOT) not in sys.path:
 
 from src.agent.coordinator import Coordinator
 from src.agent.state import PartyOutcome
-from src.tools.capacity import check_capacity
-from src.tools.rate_card import get_rate_card
-from src.tools.status import get_shipment_status
+from src.tools.capacity import check_availability
+from src.tools.rate_card import lookup_price
+from src.tools.status import get_record_status
 
 
 def show(title: str, payload: object) -> None:
@@ -24,28 +24,31 @@ def show(title: str, payload: object) -> None:
 
 
 def main() -> int:
-    show("rate_card BLR-HYD 19ft", get_rate_card("Bangalore", "Hyderabad", "19ft"))
-    show("rate_card missing lane", get_rate_card("Goa", "Kochi", "14ft"))
-    show("capacity BLR tomorrow", check_capacity("BLR", "tomorrow"))
-    show("capacity MUM today-ish", check_capacity("Mumbai", "2026-08-14"))
-    show("shipment MM-1001", get_shipment_status("mm-1001"))
+    show("price Andheri-Bandra half-day", lookup_price("Andheri", "Bandra", "half-day"))
+    show("price missing pair", lookup_price("Goa", "Kochi", "hourly"))
+    show("availability Andheri tomorrow", check_availability("ANDHERI", "tomorrow"))
+    show("availability Powai today-ish", check_availability("Powai", "2026-08-14"))
+    show("record BK-1001", get_record_status("bk-1001"))
 
     coordinator = Coordinator()
     session = coordinator.start(
         "tool-smoke",
-        shipment_id="MM-1001",
-        origin="BLR",
-        destination="HYD",
-        vehicle_type="19ft",
-        pickup_date="2026-08-14",
+        record_id="BK-1001",
+        origin="ANDHERI",
+        destination="BANDRA",
+        item_type="half-day",
+        slot_date="2026-08-14",
     )
     decision = coordinator.record_party_end(
         session.session_id,
         outcome=PartyOutcome.ACCEPTED,
-        summary="Driver agreed 21000 on a 19ft.",
-        rate=21000,
+        summary="Vendor agreed 9000 on a half-day.",
+        rate=9000,
     )
-    show("after driver accepted", {"decision": decision.model_dump(), "snapshot": coordinator.get(session.session_id).snapshot()})
+    show(
+        "after vendor accepted",
+        {"decision": decision.model_dump(), "snapshot": coordinator.get(session.session_id).snapshot()},
+    )
     return 0
 
 

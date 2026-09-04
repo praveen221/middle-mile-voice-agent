@@ -1,32 +1,31 @@
-from src.tools.rate_card import get_rate_card, normalize_city, normalize_vehicle
+from src.tools.rate_card import lookup_price, normalize_item, normalize_place
 
 
-def test_known_lane_aliases():
-    card = get_rate_card("Bangalore", "Hyderabad", "19ft")
+def test_known_pair_aliases():
+    card = lookup_price("Andheri", "Bandra", "half-day")
     assert card["found"] is True
-    assert card["origin"] == "BLR"
-    assert card["destination"] == "HYD"
-    assert card["typical"] == 21000
+    assert card["origin"] == "ANDHERI"
+    assert card["destination"] == "BANDRA"
+    assert card["typical"] == 8000
     assert card["min"] < card["typical"] < card["max"]
 
 
-def test_missing_lane():
-    card = get_rate_card("Goa", "Kochi", "14ft")
+def test_missing_pair():
+    card = lookup_price("Goa", "Kochi", "hourly")
     assert card["found"] is False
     assert "human" in card["message"].lower()
 
 
 def test_normalizers():
-    assert normalize_city("bengaluru") == "BLR"
-    assert normalize_city("whitefield") == "BLR"
-    assert normalize_city("patancheru") == "HYD"
-    assert normalize_vehicle("Tata 407") == "407"
+    assert normalize_place("lightroom") == "ANDHERI"
+    assert normalize_place("studio") == "ANDHERI"
+    assert normalize_item("half day") == "half-day"
 
 
-def test_bhiwandi_ahmedabad_32ft():
-    row = get_rate_card("bhiwandi", "sanand", "32ft")
+def test_powai_worli_half_day():
+    row = lookup_price("powai", "worli", "half-day")
     assert row["found"] is True
-    assert row["origin"] == "MUM"
-    assert row["destination"] == "AMD"
-    assert row["typical"] == 18500
-    assert row["max"] == 22000
+    assert row["origin"] == "POWAI"
+    assert row["destination"] == "WORLI"
+    assert row["typical"] == 9000
+    assert row["max"] == 11000

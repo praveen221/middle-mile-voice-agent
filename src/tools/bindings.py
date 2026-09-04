@@ -5,10 +5,10 @@ from __future__ import annotations
 from pipecat.services.llm_service import FunctionCallParams
 
 from src.agent.state import get_store
-from src.tools.capacity import check_capacity
+from src.tools.capacity import check_availability
 from src.tools.negotiation import end_party_call, update_negotiation_state
-from src.tools.rate_card import get_rate_card
-from src.tools.status import get_shipment_status
+from src.tools.rate_card import lookup_price
+from src.tools.status import get_record_status
 
 
 def trace_tool(session_id: str, name: str) -> None:
@@ -25,77 +25,65 @@ def trace_tool(session_id: str, name: str) -> None:
 def make_voice_tools(session_id: str):
     """Build tool callables closed over this call's session_id."""
 
-    async def get_rate_card_tool(
+    async def lookup_price_tool(
         params: FunctionCallParams,
         origin: str,
         destination: str,
-        vehicle_type: str,
+        item_type: str,
     ):
-        """Look up the rate card for a lane and vehicle.
+        """Look up min/typical/max price for a from/to pair and item.
 
         Args:
-            origin: Origin city or code.
-            destination: Destination city or code.
-            vehicle_type: Vehicle type such as 14ft or 19ft.
+            origin: Origin place.
+            destination: Destination place.
+            item_type: half-day, full-day, or hourly.
         """
-        trace_tool(session_id, "get_rate_card")
-        await params.result_callback(get_rate_card(origin, destination, vehicle_type))
+        trace_tool(session_id, "lookup_price")
+        await params.result_callback(lookup_price(origin, destination, item_type))
 
-    async def check_capacity_tool(params: FunctionCallParams, location: str, date: str):
-        """Check warehouse loading capacity for a location and date.
+    async def check_availability_tool(params: FunctionCallParams, location: str, date: str):
+        """Check remaining slots at a location for a date.
 
         Args:
-            location: Warehouse city or code.
+            location: Place name.
             date: Date as YYYY-MM-DD, today, or tomorrow.
         """
-        trace_tool(session_id, "check_capacity")
-        await params.result_callback(check_capacity(location, date))
+        trace_tool(session_id, "check_availability")
+        await params.result_callback(check_availability(location, date))
 
-    async def get_shipment_status_tool(params: FunctionCallParams, shipment_id: str):
-        """Get shipment status by id.
+    async def get_record_status_tool(params: FunctionCallParams, record_id: str):
+        """Get a sample booking by id.
 
         Args:
-            shipment_id: Shipment id such as MM-1001.
+            record_id: Booking id such as BK-1001.
         """
-        trace_tool(session_id, "get_shipment_status")
-        await params.result_callback(get_shipment_status(shipment_id))
+        trace_tool(session_id, "get_record_status")
+        await params.result_callback(get_record_status(record_id))
 
     async def update_negotiation_state_tool(
         params: FunctionCallParams,
         origin: str | None = None,
         destination: str | None = None,
-        vehicle_type: str | None = None,
-        pickup_date: str | None = None,
+        item_type: str | None = None,
+        slot_date: str | None = None,
         offered_rate: float | None = None,
         accepted_rate: float | None = None,
-        shipment_id: str | None = None,
+        record_id: str | None = None,
         blocker: str | None = None,
         escalate: bool | None = None,
     ):
-        """Update shared negotiation state.
-
-        Args:
-            origin: Pickup city if newly known.
-            destination: Drop city if newly known.
-            vehicle_type: Vehicle if newly known.
-            pickup_date: ISO date if newly known.
-            offered_rate: Rate currently discussed.
-            accepted_rate: Rate a party agreed.
-            shipment_id: Shipment id if newly known.
-            blocker: Optional blocker text.
-            escalate: True to request a human.
-        """
+        """Update shared negotiation state."""
         trace_tool(session_id, "update_negotiation_state")
         await params.result_callback(
             update_negotiation_state(
                 session_id,
                 origin=origin,
                 destination=destination,
-                vehicle_type=vehicle_type,
-                pickup_date=pickup_date,
+                item_type=item_type,
+                slot_date=slot_date,
                 offered_rate=offered_rate,
                 accepted_rate=accepted_rate,
-                shipment_id=shipment_id,
+                record_id=record_id,
                 blocker=blocker,
                 escalate=escalate,
             )
@@ -128,9 +116,9 @@ def make_voice_tools(session_id: str):
         )
 
     return [
-        get_rate_card_tool,
-        check_capacity_tool,
-        get_shipment_status_tool,
+        lookup_price_tool,
+        check_availability_tool,
+        get_record_status_tool,
         update_negotiation_state_tool,
         end_party_call_tool,
     ]
