@@ -32,3 +32,6 @@ logs/
 recordings/
 *.wav
 *.mp3
+
+# Private/internal notes — not for public repo
+founderContext/

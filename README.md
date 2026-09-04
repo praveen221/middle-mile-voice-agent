@@ -1,8 +1,8 @@
 # middle-mile-voice-agent
 
-Open-source **multi-party voice agent** for middle-mile logistics negotiations.
+Open-source **voice-agent playground**. Swap STT, LLM, and TTS, then talk to a multi-party Hinglish agent in the browser. MIT licensed.
 
-Licensed under [MIT](LICENSE).
+This repo is the lab, not a product. Use it to try live speech pipelines with the models you want.
 
 ## What “run it locally” actually does
 
